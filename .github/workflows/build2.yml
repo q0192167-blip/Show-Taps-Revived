@@ -16,14 +16,12 @@ jobs:
           "$S" --channel=0 "platforms;android-37.0" "build-tools;37.0.0" || true
       - run: |
           sed -i /aapt2FromMaven/d gradle.properties
+          F=app/src/main/java/show/taps/overlay/MainView.kt
+          sed -i 's/val r = dp \*/val r = if (packRenderer != null) 0f else dp */' $F
+          perl -0777 -pi -e 's/if \(more\) postInvalidate\(\)\n            return/if (more) postInvalidate()/' $F
           chmod +x gradlew
           ./gradlew :app:assembleStableRelease --no-daemon > build.log 2>&1 || (tail -c 3000 build.log; exit 1)
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: b-${{ github.run_number }}
           files: app/build/outputs/apk/Stable/release/*.apk
-      - uses: softprops/action-gh-release@v2
-        if: failure()
-        with:
-          tag_name: f-${{ github.run_number }}
-          files: build.log
