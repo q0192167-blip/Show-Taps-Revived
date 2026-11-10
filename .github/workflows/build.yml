@@ -20,9 +20,14 @@ jobs:
 
       - name: Install SDK packages
         run: |
-          SDKMANAGER=$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")
-          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
-          "$SDKMANAGER" "platforms;android-37" "build-tools;36.0.0" "platform-tools"
+          set -x
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SM="$SDK/cmdline-tools/latest/bin/sdkmanager"
+          "$SM" --version || true
+          yes | "$SM" --licenses > /dev/null 2>&1 || true
+          "$SM" --channel=0 "platforms;android-37.0" || true
+          "$SM" --channel=0 "build-tools;37.0.0" || true
+          ls "$SDK/platforms" || true
 
       - name: Build
         run: |
