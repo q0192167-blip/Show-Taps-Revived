@@ -1,22 +1,29 @@
 name: apk
-on: [push]
+on: push
 jobs:
   b:
     runs-on: ubuntu-latest
-    permissions: {contents: write}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: {distribution: temurin, java-version: '21'}
+        with:
+          distribution: temurin
+          java-version: "21"
       - run: |
-          S="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          S=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
           yes | "$S" --licenses >/dev/null 2>&1 || true
           "$S" --channel=0 "platforms;android-37.0" "build-tools;37.0.0" || true
       - run: |
           chmod +x gradlew
           ./gradlew :app:assembleStableRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g > build.log 2>&1 || (tail -c 3000 build.log; exit 1)
       - uses: softprops/action-gh-release@v2
-        with: {tag_name: b-${{ github.run_number }}, files: app/build/outputs/apk/Stable/release/*.apk}
+        with:
+          tag_name: b-${{ github.run_number }}
+          files: app/build/outputs/apk/Stable/release/*.apk
       - uses: softprops/action-gh-release@v2
         if: failure()
-        with: {tag_name: f-${{ github.run_number }}, files: build.log}
+        with:
+          tag_name: f-${{ github.run_number }}
+          files: build.log
